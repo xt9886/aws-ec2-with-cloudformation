@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  MyInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.micro
+      ImageId: ami-04f77c9cd94746b09
+      KeyName: my-key-pair
+      SecurityGroupIds:
+        - !GetAtt
+          - MySecurityGroup
+          - GroupId
+      Tags:
+        - Key: Name
+          Value: MyInstance
+  MyIamInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: MyIamInstanceProfile
+      Path: "/"
+      Roles:
+        - MyAdminEc2Role
+  MyLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: MyLaunchTemplate
+      LaunchTemplateData:
+        IamInstanceProfile:
+          Arn: !GetAtt
+            - MyIamInstanceProfile
+            - Arn
+        DisableApiTermination: true
+        ImageId: ami-04f77c9cd94746b09
+        InstanceType: t3.micro
+        KeyName: my-key-pair
+        SecurityGroupIds:
+          - !GetAtt
+            - MySecurityGroup
+            - GroupId
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTP access via port 80
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3389
+          ToPort: 3389
+          CidrIp: 0.0.0.0/0
+
+# Output section to display the Launch Template ID and the Public IP address of the instance
+Outputs:
+  InstanceId:
+    Description: The Instance ID
+    Value: !Ref MyInstance
+  PublicIp:
+    Description: The Public IP address of the instance
+    Value: !GetAtt MyInstance.PublicIp
